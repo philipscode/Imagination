@@ -1,22 +1,52 @@
-using System.Diagnostics;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
-using OpenTelemetry.Context.Propagation;
+using System.Net.Mime;
+using Imagination;
+using Imagination.Domain.Extensions;
+using Imagination.Domain.Image;
+using Imagination.Domain.Result;
+using Imagination.Infrastructure;
+using Microsoft.AspNetCore.Mvc;
 
-namespace Imagination
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddInfrastructureServices();
+builder.Services.AddTelemetry();
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
 {
-    internal static class Program
-    {
-        internal static readonly ActivitySource Telemetry = new ("Server");
+    app.UseDeveloperExceptionPage();
+}
 
-        private static void Main(string[] args)
+app.MapPost(
+    "/convert",
+    async (
+        HttpRequest request,
+        [FromServices] IFormatDetector formatDetector,
+        [FromServices] IImageFactory imageFactory,
+        CancellationToken ct) =>
+    {
+        request.EnableBuffering();
+        var body = request.Body;
+        
+        if (await formatDetector.IsJpeg(body, ct))
         {
-            OpenTelemetry.Sdk.SetDefaultTextMapPropagator(new B3Propagator());
-            CreateHostBuilder(args).Build().Run();
+            return Results.File(body.SeekToBegin(), contentType: MediaTypeNames.Image.Jpeg);
         }
 
-        private static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
-    }
-}
+        if (!await formatDetector.IsImage(body, ct))
+        {
+            return Results.Text("Empty or invalid image file");
+        }
+
+        return await imageFactory.CreateFromStream(body, ct)
+            .Match(
+                image => Results.Stream(
+                    outputStream => image.ConvertToJpegAndDispose(outputStream, ct),
+                    contentType: MediaTypeNames.Image.Jpeg),
+                error => Results.Text(error.Value));
+    });
+
+app.Run();
