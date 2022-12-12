@@ -2,11 +2,15 @@ version: '2.2'
 
 services:
 
-  your_service:
-    # Please add your service here and serve it on port 5000.
+  imagination_server:
+    image: imagination-server
     build:
       dockerfile: Dockerfile
       context: .
+    ports:
+      - "5000:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
     mem_limit: 512m
     mem_reservation: 512m
     depends_on:

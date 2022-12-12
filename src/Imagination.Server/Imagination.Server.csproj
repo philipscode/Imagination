@@ -1,15 +1,22 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net7.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
         <RootNamespace>Imagination</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="OpenTelemetry.Exporter.Jaeger" Version="1.2.0-alpha1" />
-      <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.0.0-rc7" />
-      <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.0.0-rc7" />
-      <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.0.0-rc7" />
+        <PackageReference Include="OpenTelemetry.Exporter.Jaeger" Version="1.2.0-alpha1" />
+        <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.0.0-rc7" />
+        <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.0.0-rc7" />
+        <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.0.0-rc7" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Imagination.Domain\Imagination.Domain.csproj" />
+      <ProjectReference Include="..\Imagination.Infrastructure\Imagination.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>
